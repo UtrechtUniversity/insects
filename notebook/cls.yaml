@@ -1,0 +1,28 @@
+names:
+  0: ant
+  1: bee
+  2: bee_apis
+  3: bee_bombus
+  4: beetle
+  5: beetle_ladybug
+  6: beetle_oedem
+  7: butterfly
+  8: dragonfly
+  9: fly
+  10: fly_empi
+  11: fly_hoverfly_episyr
+  12: fly_hoverfly_eristal
+  13: fly_hoverfly_eupeo
+  14: fly_hoverfly_myathr
+  15: fly_hoverfly_sphaero
+  16: fly_hoverfly_syrphus
+  17: fly_mosquito
+  18: fly_sarco
+  19: fly_small
+  20: grasshopper
+  21: mecoptera_scorpionfly
+  22: wasp
+path: ..\datasets\initialTestDataSetV2\train_val_test_split
+test: test
+train: train
+val: val

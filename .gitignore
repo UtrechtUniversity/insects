@@ -1,3 +1,20 @@
 .ipynb_checkpoints
 dataset
 
+# Ignore Python virtual environments
+venv/
+.env/
+ENV/
+env/
+.venv/
+# VS Code settings
+.vscode/
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+
+
+

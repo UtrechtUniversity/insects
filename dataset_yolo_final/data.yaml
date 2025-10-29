@@ -1,17 +1,17 @@
 
-train: C:\dev_projects_pc\uu-insect-project\object detection\insects\dataset_yolo_final\train\images
-val: C:\dev_projects_pc\uu-insect-project\object detection\insects\dataset_yolo_final\val\images
-test: C:\dev_projects_pc\uu-insect-project\object detection\insects\dataset_yolo_final\test\images
+train: "C:/Users/ofaru/Desktop/AI for Society/Group Project/Project Itself/3. branch/insects/dataset_yolo_final/train/images"
+val: "C:/Users/ofaru/Desktop/AI for Society/Group Project/Project Itself/3. branch/insects/dataset_yolo_final/val/images"
+test: "C:/Users/ofaru/Desktop/AI for Society/Group Project/Project Itself/3. branch/insects/dataset_yolo_final/test/images"
 
-nc: 10  
+nc: 10
 names:
-  0: 3031
-  1: 6714
-  2: 5953
-  3: 5121
-  4: 2351
-  5: 2991
-  6: 2392
-  7: 6315
-  8: 10896
-  9: 7243
+  0: "3031"
+  1: "6714"
+  2: "5953"
+  3: "5121"
+  4: "2351"
+  5: "2991"
+  6: "2392"
+  7: "6315"
+  8: "10896"
+  9: "7243"

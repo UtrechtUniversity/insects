@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insect Recognizer AI | AI for Society</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Background Elements -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-bug"></i> BioScan<span>.AI</span>
+        </div>
+        <p class="subtitle">AI for Society Project</p>
+    </header>
+
+    <main class="container">
+        
+        <!-- Mode Switcher -->
+        <div class="mode-control glass-panel-sm">
+            <p class="mode-label">Select Analysis Protocol:</p>
+            <div class="toggle-container">
+                <input type="radio" id="modeClassify" name="mode" value="classification" checked>
+                <label for="modeClassify">Classification</label>
+                
+                <input type="radio" id="modeDetect" name="mode" value="detection">
+                <label for="modeDetect">Object Detection</label>
+                
+                <div class="toggle-slider"></div>
+            </div>
+        </div>
+
+        <!-- Section 1: Upload Area -->
+        <section class="glass-panel upload-section" id="uploadSection">
+            <h2 id="sectionTitle">Scan Specimen</h2>
+            <p id="sectionDesc">Upload an image of a single insect to identify the species.</p>
+            
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-content">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Drag & Drop image here</p>
+                    <span class="or">OR</span>
+                    <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+                <!-- Image Preview Container -->
+                <div class="preview-container" id="previewContainer" style="display: none;">
+                    <img id="userImage" src="" alt="User Upload">
+                    <button class="remove-btn" id="removeBtn"><i class="fa-solid fa-times"></i></button>
+                </div>
+            </div>
+
+            <button id="processBtn" class="btn-primary" disabled>
+                <i class="fa-solid fa-microchip"></i> <span id="btnText">Identify Species</span>
+            </button>
+        </section>
+
+        <!-- Section 2: Loading State -->
+        <section class="loading-section" id="loadingSection" style="display: none;">
+            <div class="scanner-wrapper">
+                <div class="scanner-animation">
+                    <div class="scan-line"></div>
+                </div>
+                <!-- Grid overlay for cool effect -->
+                <div class="scan-grid"></div>
+            </div>
+            <p class="blinking-text" id="loadingText">Analyzing biological patterns...</p>
+        </section>
+
+        <!-- Section 3: Results -->
+        <section class="glass-panel result-section" id="resultSection" style="display: none;">
+            <div class="result-header">
+                <h2>Analysis Complete</h2>
+                <span class="confidence-badge">High Confidence</span>
+            </div>
+            
+            <!-- MODE 1: CLASSIFICATION RESULT (Side by Side) -->
+            <div id="classificationResult" class="result-mode-content">
+                <div class="result-grid">
+                    <div class="card">
+                        <h3>Your Specimen</h3>
+                        <img id="resClassUserImg" src="" alt="Your Upload">
+                    </div>
+                    <div class="icon-connector">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                    <div class="card ai-card">
+                        <h3>Database Match</h3>
+                        <img id="resClassAiImg" src="" alt="AI Result">
+                        <div class="insect-info">
+                            <h1 id="insectName">Insect Name</h1>
+                            <p id="insectSciName">Scientific Name</p>
+                            <p class="desc">98.5% Genetic Match</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODE 2: DETECTION RESULT (Bounding Boxes) -->
+            <div id="detectionResult" class="result-mode-content" style="display: none;">
+                <div class="detection-wrapper">
+                    <h3>Detected Objects</h3>
+                    <div class="annotated-image-container" id="annotatedContainer">
+                        <img id="resDetectUserImg" src="" alt="Detection Result">
+                        <!-- Bounding boxes will be injected here by JS -->
+                    </div>
+                    <div class="detection-stats">
+                        <p><span class="highlight">3</span> Objects Detected</p>
+                        <p>Processing Time: <span class="highlight">0.45s</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-secondary" id="resetBtn">Scan Another</button>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>Developed by the student team at <strong>Fontys University of Applied Sciences</strong> (Eindhoven)</p>
+            <p>In collaboration with <strong>Utrecht University</strong></p>
+            <p class="tiny">Project: Insect Recognizer AI for AI for Society</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

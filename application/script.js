@@ -19,12 +19,13 @@ const uploadSection = document.getElementById('uploadSection');
 const loadingSection = document.getElementById('loadingSection');
 const resultSection = document.getElementById('resultSection');
 
-// Classification Results Elements
+// Classification Results Elements (Crop Mode)
 const classificationResult = document.getElementById('classificationResult');
 const resClassUserImg = document.getElementById('resClassUserImg');
 const resClassAiImg = document.getElementById('resClassAiImg');
 const insectName = document.getElementById('insectName');
 const insectSciName = document.getElementById('insectSciName');
+const matchDesc = document.querySelector('.desc'); // <--- Selected the percentage text
 
 // Detection Results Elements
 const detectionResult = document.getElementById('detectionResult');
@@ -34,17 +35,39 @@ const resetBtn = document.getElementById('resetBtn');
 
 // --- State Variables ---
 let currentMode = 'classification'; 
+let currentFile = null;
+let downloadBlob = null;
+
+// --- Create Download Button Dynamically ---
+const downloadBtn = document.createElement('button');
+downloadBtn.className = 'btn-primary';
+downloadBtn.innerHTML = '<i class="fa-solid fa-download"></i> Download Results';
+downloadBtn.style.marginTop = '15px';
+downloadBtn.style.display = 'none'; 
+document.querySelector('.ai-card').appendChild(downloadBtn);
 
 // --- Event Listeners ---
 modeClassify.addEventListener('change', () => { if(modeClassify.checked) updateMode('classification'); });
 modeDetect.addEventListener('change', () => { if(modeDetect.checked) updateMode('detection'); });
 
+downloadBtn.addEventListener('click', () => {
+    if (downloadBlob) {
+        const url = window.URL.createObjectURL(downloadBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "insects_cropped.zip";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+});
+
 function updateMode(mode) {
     currentMode = mode;
     if (mode === 'classification') {
-        sectionTitle.textContent = "Crop & Download";
+        sectionTitle.textContent = "Crop Specimen";
         sectionDesc.textContent = "Extract all insects from the image into individual files.";
-        btnText.textContent = "Download Crops";
+        btnText.textContent = "Extract Insects";
     } else {
         sectionTitle.textContent = "Insect Detection";
         sectionDesc.textContent = "Detect and identify all insects in the image.";
@@ -62,11 +85,18 @@ dropZone.addEventListener('drop', (e) => {
 
 fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 removeBtn.addEventListener('click', resetUpload);
-processBtn.addEventListener('click', () => { if (userImage.src) startProcessing(); });
+processBtn.addEventListener('click', () => { if (currentFile) startProcessing(); });
 
 resetBtn.addEventListener('click', () => {
     resultSection.style.display = 'none';
     uploadSection.style.display = 'block';
+    
+    // Reset UI elements
+    downloadBtn.style.display = 'none';
+    downloadBlob = null;
+    resClassAiImg.style.display = 'block'; // Reset image visibility
+    if(matchDesc) matchDesc.textContent = ""; // Clear text on reset
+    
     const oldBoxes = annotatedContainer.querySelectorAll('.bounding-box');
     oldBoxes.forEach(box => box.remove());
     resetUpload();
@@ -77,6 +107,7 @@ function handleFiles(files) {
     if (files.length > 0) {
         const file = files[0];
         if (file.type.startsWith('image/')) {
+            currentFile = file;
             const reader = new FileReader();
             reader.onload = (e) => {
                 const imgData = e.target.result;
@@ -96,6 +127,7 @@ function handleFiles(files) {
 
 function resetUpload() {
     fileInput.value = '';
+    currentFile = null;
     userImage.src = '';
     previewContainer.style.display = 'none';
     dropContent.style.display = 'block';
@@ -103,19 +135,22 @@ function resetUpload() {
 }
 
 function startProcessing() {
+    if (!currentFile) {
+        alert("No file selected!");
+        return;
+    }
+
     uploadSection.style.display = 'none';
     loadingSection.style.display = 'block';
     
-    // Update loading text
     const loadingText = document.getElementById('loadingText');
     loadingText.textContent = currentMode === 'classification' 
         ? "Extracting insects..." 
         : "Scanning image...";
 
     const formData = new FormData();
-    formData.append('image', fileInput.files[0]);
+    formData.append('image', currentFile);
 
-    // Define API Endpoints
     const baseUrl = 'http://127.0.0.1:5000';
     const endpoint = currentMode === 'classification' 
         ? `${baseUrl}/crop_download`
@@ -125,43 +160,52 @@ function startProcessing() {
         // --- CROP MODE ---
         fetch(endpoint, { method: 'POST', body: formData })
             .then(response => {
-                if (!response.ok) throw new Error("Server error");
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
                 return response.blob();
             })
             .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "insects_cropped.zip";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
+                downloadBlob = blob;
                 
-                // Show simple success screen
                 loadingSection.style.display = 'none';
                 resultSection.style.display = 'block';
                 classificationResult.style.display = 'block';
                 detectionResult.style.display = 'none';
-                insectName.textContent = "Success";
-                insectSciName.textContent = "Crops downloaded to your computer.";
+
+                // --- UI UPDATES FOR CROP SUCCESS ---
+                resClassAiImg.style.display = 'none'; // Hide generic image
+                
+                insectName.textContent = "Extraction Complete";
+                insectSciName.textContent = "Insects successfully cropped.";
+                insectSciName.style.color = '#00ffaa';
+                
+                // Clear the misleading percentage text
+                if(matchDesc) {
+                    matchDesc.textContent = "Archive ready for download.";
+                    matchDesc.style.color = "#80cbc4"; // Reset color to muted
+                }
+
+                downloadBtn.style.display = 'inline-block';
             })
             .catch(error => {
                 console.error("Error:", error);
-                alert("An error occurred during processing. Check the CMD console for details.");
+                alert("Extraction Failed: " + error.message);
                 location.reload();
             });
 
     } else {
         // --- DETECTION MODE ---
         fetch(endpoint, { method: 'POST', body: formData })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                return response.json();
+            })
             .then(data => {
                 if(data.error) throw new Error(data.error);
                 finishProcessingDetection(data);
             })
             .catch(error => {
                 console.error("Error:", error);
-                alert("An error occurred. Check if the Python backend is running.");
+                alert("Detection Failed: " + error.message);
                 location.reload();
             });
     }
@@ -174,31 +218,30 @@ function finishProcessingDetection(data) {
     classificationResult.style.display = 'none';
     detectionResult.style.display = 'block';
     
-    // Draw real boxes
     drawBoxes(data);
     
-    // Update stats
     const countSpan = document.querySelector('.detection-stats .highlight');
     if(countSpan) countSpan.textContent = data.length;
 }
 
 function drawBoxes(predictions) {
-    // Clear old boxes
     const oldBoxes = annotatedContainer.querySelectorAll('.bounding-box');
     oldBoxes.forEach(box => box.remove());
 
-    // Get natural dimensions of the image (real pixels)
     const naturalWidth = resDetectUserImg.naturalWidth;
     const naturalHeight = resDetectUserImg.naturalHeight;
+
+    if (naturalWidth === 0 || naturalHeight === 0) {
+        resDetectUserImg.onload = () => drawBoxes(predictions);
+        return;
+    }
 
     predictions.forEach(pred => {
         const box = document.createElement('div');
         box.classList.add('bounding-box');
         
-        // Backend returns [x1, y1, x2, y2] in pixels
         const [x1, y1, x2, y2] = pred.box;
         
-        // Convert to percentages for CSS positioning
         const left = (x1 / naturalWidth) * 100;
         const top = (y1 / naturalHeight) * 100;
         const width = ((x2 - x1) / naturalWidth) * 100;
@@ -209,10 +252,12 @@ function drawBoxes(predictions) {
         box.style.width = `${width}%`;
         box.style.height = `${height}%`;
 
-        // Add Label
         const label = document.createElement('span');
         label.classList.add('box-label');
-        label.textContent = `${pred.label} (${Math.round(pred.confidence * 100)}%)`;
+        
+        // Show percentage only if confidence is high, otherwise just show label
+        const confPercent = Math.round(pred.confidence * 100);
+        label.textContent = `${pred.label} (${confPercent}%)`;
 
         box.appendChild(label);
         annotatedContainer.appendChild(box);

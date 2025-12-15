@@ -1,5 +1,6 @@
 import os
 import io
+import json
 import zipfile
 import torch
 import numpy as np
@@ -11,20 +12,87 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from PIL import Image
 
 app = Flask(__name__)
-CORS(app)  # <--- CRITICAL FIX: Allows browser to fetch data
+CORS(app)
 
-# --- CONFIGURATION ---
-MODEL_PATH = r"R:\Files Ruben\GitRepos\InsectRecognizerAI\notebook\Faster R-CNN\faster_rcnn_ami_traps.pth"
+# --- PATH CONFIGURATION ---
+# This grabs the folder where app.py is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Look for files in the same folder as app.py
+MODEL_PATH = os.path.join(BASE_DIR, "faster_rcnn_ami_traps.pth")
+NOTES_JSON_PATH = os.path.join(BASE_DIR, "notes.json")
+
 DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 # --- CLASS MAPPING ---
-# REPLACE THIS with your specific dictionary from the notebook output if different
-IDX_TO_CLASS = {
-    1: 2351, 2: 2392, 3: 2991, 4: 3031, 5: 5121,
-    6: 5953, 7: 6315, 8: 6714, 9: 7243, 10: 10896
+# Maps Model Output Index (1-40) -> Dataset Insect ID
+IDX_TO_DATASET_ID = {
+    1: 1099,
+    2: 1138,
+    3: 1808,
+    4: 1912,
+    5: 2351,
+    6: 2357,
+    7: 2358,
+    8: 2392,
+    9: 2501,
+    10: 2790,
+    11: 2991,
+    12: 2997,
+    13: 3031,
+    14: 3652,
+    15: 3694,
+    16: 3852,
+    17: 4774,
+    18: 5112,
+    19: 5121,
+    20: 5800,
+    21: 5920,
+    22: 5953,
+    23: 5981,
+    24: 6315,
+    25: 6714,
+    26: 7069,
+    27: 7243,
+    28: 7504,
+    29: 7541,
+    30: 7575,
+    31: 8083,
+    32: 8133,
+    33: 8134,
+    34: 9409,
+    35: 9826,
+    36: 10175,
+    37: 10896,
+    38: 10901,
+    39: 11077,
+    40: 11304,
 }
 
-NUM_CLASSES = len(IDX_TO_CLASS) + 1
+# --- LOAD HUMAN NAMES FROM JSON ---
+DATASET_ID_TO_NAME = {}
+
+def load_names():
+    if os.path.exists(NOTES_JSON_PATH):
+        try:
+            with open(NOTES_JSON_PATH, 'r') as f:
+                data = json.load(f)
+                # Handle structure if it's a dict with 'categories' or just a list
+                categories = data.get('categories', data) 
+                for category in categories:
+                    cat_id = category.get('id')
+                    cat_name = category.get('name', 'Unknown')
+                    DATASET_ID_TO_NAME[cat_id] = cat_name
+            print(f"✅ Loaded {len(DATASET_ID_TO_NAME)} insect names from JSON.")
+        except Exception as e:
+            print(f"❌ Error parsing notes.json: {e}")
+    else:
+        print(f"⚠️ WARNING: notes.json not found at {NOTES_JSON_PATH}")
+
+load_names()
+
+# 0 (Background) + 40 Insects = 41 Classes
+NUM_CLASSES = len(IDX_TO_DATASET_ID) + 1
 
 # --- LOAD MODEL ---
 def get_model():
@@ -34,10 +102,13 @@ def get_model():
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, NUM_CLASSES)
     
     if os.path.exists(MODEL_PATH):
-        model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
-        print("✅ Model loaded successfully!")
+        try:
+            model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+            print("✅ Model loaded successfully!")
+        except Exception as e:
+            print(f"❌ Error loading model: {e}")
     else:
-        print(f"❌ ERROR: Model file not found at {MODEL_PATH}")
+        print(f"❌ CRITICAL ERROR: Model file not found at {MODEL_PATH}")
     
     model.to(DEVICE)
     model.eval()
@@ -54,7 +125,6 @@ def analyze():
     file = request.files['image']
     
     try:
-        print("Processing image...")
         img_pil = Image.open(file.stream).convert("RGB")
         img_tensor = F.to_tensor(img_pil).unsqueeze(0).to(DEVICE)
         
@@ -62,22 +132,34 @@ def analyze():
             prediction = model(img_tensor)[0]
         
         results = []
-        THRESHOLD = 0.5
+        HIGH_THRESHOLD = 0.5  # High confidence = Specific Name
+        LOW_THRESHOLD = 0.3   # Medium confidence = Unknown Insect
         
         for i in range(len(prediction['boxes'])):
             score = prediction['scores'][i].item()
-            if score > THRESHOLD:
+            
+            if score > LOW_THRESHOLD:
                 box = prediction['boxes'][i].cpu().numpy().tolist()
                 label_idx = prediction['labels'][i].item()
-                label_name = str(IDX_TO_CLASS.get(label_idx, "Unknown"))
                 
+                # 1. Internal Index -> Dataset ID
+                dataset_id = IDX_TO_DATASET_ID.get(label_idx, -1)
+                
+                # 2. Dataset ID -> Human Name
+                real_name = DATASET_ID_TO_NAME.get(dataset_id, f"ID: {dataset_id}")
+                
+                # 3. Apply Unknown Logic
+                display_label = real_name
+                if score < HIGH_THRESHOLD:
+                    display_label = "Unknown Insect"
+
                 results.append({
-                    'label': label_name,
+                    'label': display_label,
                     'confidence': round(score, 2),
                     'box': box 
                 })
         
-        print(f"✅ Found {len(results)} objects. Sending response.")
+        print(f"✅ Found {len(results)} objects.")
         return jsonify(results)
 
     except Exception as e:
@@ -93,7 +175,6 @@ def crop_download():
     file = request.files['image']
     
     try:
-        print("Processing image for cropping...")
         img_pil = Image.open(file.stream).convert("RGB")
         img_np = np.array(img_pil)
         img_tensor = F.to_tensor(img_pil).unsqueeze(0).to(DEVICE)
@@ -104,28 +185,31 @@ def crop_download():
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
             count = 0
-            THRESHOLD = 0.5
+            THRESHOLD = 0.3
             
             for i in range(len(prediction['boxes'])):
                 if prediction['scores'][i] > THRESHOLD:
                     x1, y1, x2, y2 = map(int, prediction['boxes'][i].cpu().tolist())
+                    
                     h, w, _ = img_np.shape
                     x1, y1 = max(0, x1), max(0, y1)
                     x2, y2 = min(w, x2), min(h, y2)
-                    
+
                     label_idx = prediction['labels'][i].item()
-                    name = str(IDX_TO_CLASS.get(label_idx, "Insect"))
+                    dataset_id = IDX_TO_DATASET_ID.get(label_idx, -1)
+                    name = DATASET_ID_TO_NAME.get(dataset_id, "Unknown")
                     
+                    safe_name = "".join([c for c in name if c.isalnum() or c in (' ', '_')]).strip().replace(" ", "_")
+
                     crop = img_np[y1:y2, x1:x2]
                     
                     if crop.size > 0:
                         crop_pil = Image.fromarray(crop)
                         img_byte_arr = io.BytesIO()
                         crop_pil.save(img_byte_arr, format='PNG')
-                        zip_file.writestr(f"{name}_{count}.png", img_byte_arr.getvalue())
+                        zip_file.writestr(f"{safe_name}_{count}.png", img_byte_arr.getvalue())
                         count += 1
                         
-        print(f"✅ Created zip with {count} insects. Downloading...")
         zip_buffer.seek(0)
         return send_file(zip_buffer, mimetype='application/zip', as_attachment=True, download_name='insects_cropped.zip')
 

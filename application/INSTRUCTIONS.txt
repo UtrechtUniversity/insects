@@ -2,12 +2,13 @@ INSTRUCTIONS TO START THE PROGRAM
 -----------------------------------------------------------------------------------------------------
 1. Change model directory in app.py if necessary.
 
-2. Open the app directory, example pc ruben: "cd /d "R:\Files Ruben\GitRepos\InsectRecognizerAI""
-                           example laptop ruben : "cd /d "C:\Users\ruben\Documents\Documents Ruben\Development\GitRepos\InsectRecognizerAI""
+2. Open the app directory, example pc ruben: "cd /d "R:\Files Ruben\GitRepos\InsectRecognizerAI\application""
+                           example laptop ruben : "cd /d "C:\Users\ruben\Documents\Documents Ruben\Development\GitRepos\InsectRecognizerAI\application""
+                           example pc ruben cropper: "cd /d "R:\Files Ruben\GitRepos\InsectRecognizerAI\notebook\Dataset Insect Cropper""
 
 * If no vertual environment is created do: "python -m venv venv"
 
-3. Activate the venv: "..\venv\Scripts\activate"
+3. Activate the venv: "..\venv\Scripts\activate" or ".\venv\Scripts\activate"
 
 * Only If a new environment is created install the required packages "pip install -r requirements.txt"
 

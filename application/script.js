@@ -156,7 +156,7 @@ function startProcessing() {
         ? `${baseUrl}/crop_download`
         : `${baseUrl}/analyze`;
 
-    if (currentMode === 'classification') {
+if (currentMode === 'classification') {
         // --- CROP MODE ---
         fetch(endpoint, { method: 'POST', body: formData })
             .then(response => {
@@ -164,24 +164,24 @@ function startProcessing() {
                 return response.blob();
             })
             .then(blob => {
-                downloadBlob = blob;
+                // FORCE the type to be a ZIP file
+                const safeBlob = new Blob([blob], { type: 'application/zip' }); // <--- CHANGED THIS LINE
+                downloadBlob = safeBlob; 
                 
                 loadingSection.style.display = 'none';
                 resultSection.style.display = 'block';
                 classificationResult.style.display = 'block';
                 detectionResult.style.display = 'none';
 
-                // --- UI UPDATES FOR CROP SUCCESS ---
-                resClassAiImg.style.display = 'none'; // Hide generic image
+                resClassAiImg.style.display = 'none'; 
                 
                 insectName.textContent = "Extraction Complete";
                 insectSciName.textContent = "Insects successfully cropped.";
                 insectSciName.style.color = '#00ffaa';
                 
-                // Clear the misleading percentage text
                 if(matchDesc) {
                     matchDesc.textContent = "Archive ready for download.";
-                    matchDesc.style.color = "#80cbc4"; // Reset color to muted
+                    matchDesc.style.color = "#80cbc4";
                 }
 
                 downloadBtn.style.display = 'inline-block';

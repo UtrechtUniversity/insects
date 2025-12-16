@@ -1,0 +1,19 @@
+INSTRUCTIONS TO START THE PROGRAM
+-----------------------------------------------------------------------------------------------------
+1. Change model directory in app.py if necessary.
+
+2. Open the app directory, example pc ruben: "cd /d "R:\Files Ruben\GitRepos\InsectRecognizerAI""
+                           example laptop ruben : "cd /d "C:\Users\ruben\Documents\Documents Ruben\Development\GitRepos\InsectRecognizerAI""
+
+* If no vertual environment is created do: "python -m venv venv"
+
+3. Activate the venv: "..\venv\Scripts\activate"
+
+* Only If a new environment is created install the required packages "pip install -r requirements.txt"
+
+4. Start the app "python app.py"
+
+5. Open the index.html with Chrome
+
+Model trained with full images
+not cropped yet

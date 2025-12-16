@@ -211,7 +211,23 @@ def crop_download():
                         count += 1
                         
         zip_buffer.seek(0)
-        return send_file(zip_buffer, mimetype='application/zip', as_attachment=True, download_name='insects_cropped.zip')
+        
+        # Create the response object
+        response = send_file(
+            zip_buffer, 
+            mimetype='application/zip', 
+            as_attachment=True, 
+            download_name='insects_cropped.zip'
+        )
+        
+        # ADD THESE HEADERS to tell browsers/Windows this is safe
+        response.headers["Content-Type"] = "application/zip"
+        # Prevents the browser from trying to "sniff" the file type and guessing wrong
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # Explicitly state the filename again in the header
+        response.headers["Content-Disposition"] = 'attachment; filename="insects_cropped.zip"'
+        
+        return response
 
     except Exception as e:
         print(f"❌ Error: {e}")

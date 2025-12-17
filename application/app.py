@@ -18,8 +18,8 @@ CORS(app)
 # This grabs the folder where app.py is located
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Look for files in the same folder as app.py
-MODEL_PATH = os.path.join(BASE_DIR, "faster_rcnn_ami_traps.pth")
+# 1. UPDATE FILENAME HERE
+MODEL_PATH = os.path.join(BASE_DIR, "faster_rcnn_ami_traps_v2.pth") 
 NOTES_JSON_PATH = os.path.join(BASE_DIR, "notes.json")
 
 DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -27,46 +27,28 @@ DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 # --- CLASS MAPPING ---
 # Maps Model Output Index (1-40) -> Dataset Insect ID
 IDX_TO_DATASET_ID = {
-    1: 1099,
-    2: 1138,
-    3: 1808,
-    4: 1912,
-    5: 2351,
-    6: 2357,
-    7: 2358,
-    8: 2392,
-    9: 2501,
-    10: 2790,
-    11: 2991,
-    12: 2997,
-    13: 3031,
-    14: 3652,
-    15: 3694,
-    16: 3852,
-    17: 4774,
-    18: 5112,
-    19: 5121,
-    20: 5800,
-    21: 5920,
-    22: 5953,
-    23: 5981,
-    24: 6315,
-    25: 6714,
-    26: 7069,
-    27: 7243,
-    28: 7504,
-    29: 7541,
-    30: 7575,
-    31: 8083,
-    32: 8133,
-    33: 8134,
-    34: 9409,
-    35: 9826,
-    36: 10175,
-    37: 10896,
-    38: 10901,
-    39: 11077,
-    40: 11304,
+    1: 1912,
+    2: 2351,
+    3: 2357,
+    4: 2358,
+    5: 2392,
+    6: 2501,
+    7: 2991,
+    8: 2997,
+    9: 3031,
+    10: 5121,
+    11: 5800,
+    12: 5920,
+    13: 5953,
+    14: 6315,
+    15: 6714,
+    16: 7069,
+    17: 7504,
+    18: 8083,
+    19: 8134,
+    20: 9826,
+    21: 10896,
+    22: 11304,
 }
 
 # --- LOAD HUMAN NAMES FROM JSON ---

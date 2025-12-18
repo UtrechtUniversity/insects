@@ -18,3 +18,5 @@ __pycache__/
 
 
 
+notebook/outputs/
+*.pth

@@ -1,0 +1,23 @@
+# NOTE:
+# PyTorch (torch/torchvision/torchaudio) must be installed separately
+# depending on your system (CUDA vs CPU).
+# See README for example commands.
+
+pillow==12.0.0
+tqdm==4.67.1
+torchmetrics==1.8.2
+
+numpy==2.2.6
+pandas==2.3.3
+PyYAML==6.0.3
+
+opencv-python-headless==4.12.0.88
+albumentations==2.0.8
+albucore==0.0.24
+
+scikit-learn==1.7.2
+scipy==1.15.3
+joblib==1.5.2
+threadpoolctl==3.6.0
+
+matplotlib==3.10.8
